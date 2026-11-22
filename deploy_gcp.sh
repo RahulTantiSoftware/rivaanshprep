@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+set -e
+
+# ==============================================================================
+# RivaanshPrep - Automated Production Deployment Script for Google Cloud Engine
+# Domain: rivaanshprep.com / www.rivaanshprep.com
+# Stack: Nginx + React 19 + Spring Boot 3.3.5 (Java 21) + Systemd + Certbot SSL
+# ==============================================================================
+
+echo "=========================================================="
+echo "🚀 Starting RivaanshPrep Deployment for rivaanshprep.com"
+echo "=========================================================="
+
+DOMAIN="rivaanshprep.com"
+APP_DIR="/opt/rivaanshprep"
+WEB_ROOT="/var/www/rivaanshprep"
+
+# 1. Update and install required packages
+echo "📦 [1/6] Installing dependencies (OpenJDK 21, Nginx, Certbot)..."
+sudo apt-get update -y
+sudo apt-get install -y curl git ufw nginx certbot python3-certbot-nginx openjdk-21-jdk
+
+# Install Node.js 20 LTS if not present
+if ! command -v node &> /dev/null; then
+    echo "📦 Installing Node.js 20 LTS..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+fi
+
+echo "Node version: $(node -v)"
+echo "Java version: $(java -version 2>&1 | head -n 1)"
+
+# 2. Setup project directories
+echo "📁 [2/6] Setting up project directories..."
+sudo mkdir -p "$APP_DIR"
+sudo mkdir -p "$WEB_ROOT"
+sudo chown -R $USER:$USER "$APP_DIR"
+sudo chown -R $USER:$USER "$WEB_ROOT"
+
+# Determine script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 3. Build React Frontend
+echo "⚛️  [3/6] Building Production React Frontend..."
+cd "$SCRIPT_DIR/web-app/frontend"
+npm ci
+npm run build
+cp -r dist/* "$WEB_ROOT/"
+echo "✅ Frontend built and copied to $WEB_ROOT"
+
+# 4. Build Spring Boot Backend
+echo "☕ [4/6] Building Spring Boot Backend Jar..."
+cd "$SCRIPT_DIR/web-app/backend"
+chmod +x mvnw
+./mvnw clean package -DskipTests -B
+cp target/*.jar "$APP_DIR/backend.jar"
+mkdir -p "$APP_DIR/data"
+echo "✅ Backend packaged at $APP_DIR/backend.jar"
+
+# 5. Create Systemd Service for Spring Boot
+echo "⚙️  [5/6] Configuring Systemd Service (rivaanshprep-backend)..."
+sudo tee /etc/systemd/system/rivaanshprep-backend.service > /dev/null << 'EOF'
+[Unit]
+Description=RivaanshPrep Spring Boot Backend Service
+After=syslog.target network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/rivaanshprep
+ExecStart=/usr/bin/java -Xms256m -Xmx768m -Djava.security.egd=file:/dev/./urandom -jar /opt/rivaanshprep/backend.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+Environment="PORT=8080"
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="R2_BASE_URL=https://9c6e8d481ebdbbb383ab06fa35991a66.r2.cloudflarestorage.com/rivaanshprep/Chapters"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable rivaanshprep-backend
+sudo systemctl restart rivaanshprep-backend
+echo "✅ Systemd service rivaanshprep-backend is active and running!"
+
+# 6. Configure Nginx for rivaanshprep.com
+echo "🌐 [6/6] Configuring Nginx Reverse Proxy for $DOMAIN..."
+sudo tee /etc/nginx/sites-available/rivaanshprep > /dev/null << 'EOF'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name rivaanshprep.com www.rivaanshprep.com;
+
+    root /var/www/rivaanshprep;
+    index index.html;
+
+    # Gzip Compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+
+    # Single Page Application (SPA) routing
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy API endpoints to Spring Boot
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90;
+    }
+
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Anti-clickjacking & Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+EOF
+
+sudo ln -sf /etc/nginx/sites-available/rivaanshprep /etc/nginx/sites-enabled/
+# Remove default nginx site if active
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+
+echo ""
+echo "=========================================================="
+echo "🎉 SUCCESS: RivaanshPrep is deployed on your GCP Server!"
+echo "=========================================================="
+echo "Domain: http://$DOMAIN"
+echo "Backend Status: sudo systemctl status rivaanshprep-backend"
+echo "Nginx Status:   sudo systemctl status nginx"
+echo ""
+echo "🔒 To activate free Let's Encrypt SSL/HTTPS certificate, run:"
+echo "   sudo certbot --nginx -d rivaanshprep.com -d www.rivaanshprep.com"
+echo "=========================================================="
