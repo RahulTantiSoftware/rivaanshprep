@@ -15,6 +15,19 @@ DOMAIN="rivaanshprep.com"
 APP_DIR="/opt/rivaanshprep"
 WEB_ROOT="/var/www/rivaanshprep"
 
+# 0. Free disk space on the server to prevent "E: You don't have enough free space"
+echo "🧹 [0/6] Freeing up disk space on server..."
+sudo apt-get clean
+sudo journalctl --vacuum-size=50M 2>/dev/null || true
+if command -v docker &> /dev/null; then
+    echo "Cleaning unused Docker cache..."
+    sudo docker system prune -af 2>/dev/null || true
+fi
+sudo apt-get autoremove -y || true
+
+echo "📊 Disk status:"
+df -h /
+
 # 1. Update and install required packages
 echo "📦 [1/6] Installing dependencies (OpenJDK 21, Nginx, Certbot)..."
 sudo apt-get update -y
@@ -89,28 +102,40 @@ echo "✅ Systemd service rivaanshprep-backend is active and running!"
 
 # 6. Configure Nginx for rivaanshprep.com
 echo "🌐 [6/6] Configuring Nginx Reverse Proxy for $DOMAIN..."
-sudo tee /etc/nginx/sites-available/rivaanshprep > /dev/null << 'EOF'
+
+if [ -f /etc/letsencrypt/live/rivaanshprep.com/fullchain.pem ]; then
+    echo "🔒 SSL certificate found! Configuring HTTPS & HTTP redirect..."
+    sudo tee /etc/nginx/sites-available/rivaanshprep > /dev/null << 'EOF'
 server {
     listen 80;
     listen [::]:80;
     server_name rivaanshprep.com www.rivaanshprep.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name rivaanshprep.com www.rivaanshprep.com;
+
+    ssl_certificate /etc/letsencrypt/live/rivaanshprep.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/rivaanshprep.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
 
     root /var/www/rivaanshprep;
     index index.html;
 
-    # Gzip Compression
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_proxied any;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
 
-    # Single Page Application (SPA) routing
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # Proxy API endpoints to Spring Boot
     location /api/ {
         proxy_pass http://127.0.0.1:8080/api/;
         proxy_http_version 1.1;
@@ -124,23 +149,71 @@ server {
         proxy_read_timeout 90;
     }
 
-    # Cache static assets
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ {
         expires 30d;
         add_header Cache-Control "public, no-transform";
     }
 
-    # Anti-clickjacking & Security Headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 }
 EOF
+else
+    echo "⚠️ SSL certificate not yet found. Setting up HTTP on port 80..."
+    sudo tee /etc/nginx/sites-available/rivaanshprep > /dev/null << 'EOF'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name rivaanshprep.com www.rivaanshprep.com;
 
-sudo ln -sf /etc/nginx/sites-available/rivaanshprep /etc/nginx/sites-enabled/
-# Remove default nginx site if active
+    root /var/www/rivaanshprep;
+    index index.html;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+EOF
+fi
+
+# Clean conflicting sites
 sudo rm -f /etc/nginx/sites-enabled/default
+if [ -f /etc/nginx/sites-enabled/kahani ]; then
+    sudo mv /etc/nginx/sites-enabled/kahani /etc/nginx/sites-available/kahani.bak 2>/dev/null || sudo rm -f /etc/nginx/sites-enabled/kahani
+fi
+sudo ln -sf /etc/nginx/sites-available/rivaanshprep /etc/nginx/sites-enabled/
+
 sudo nginx -t
 sudo systemctl reload nginx
 
@@ -148,10 +221,7 @@ echo ""
 echo "=========================================================="
 echo "🎉 SUCCESS: RivaanshPrep is deployed on your GCP Server!"
 echo "=========================================================="
-echo "Domain: http://$DOMAIN"
+echo "Domain: https://$DOMAIN"
 echo "Backend Status: sudo systemctl status rivaanshprep-backend"
 echo "Nginx Status:   sudo systemctl status nginx"
-echo ""
-echo "🔒 To activate free Let's Encrypt SSL/HTTPS certificate, run:"
-echo "   sudo certbot --nginx -d rivaanshprep.com -d www.rivaanshprep.com"
 echo "=========================================================="
