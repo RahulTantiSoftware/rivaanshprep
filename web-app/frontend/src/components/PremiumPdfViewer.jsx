@@ -448,11 +448,11 @@ export default function PremiumPdfViewer({
           </div>
 
           {/* Right Action Tools */}
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Thumbnails Toggle */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Thumbnails Toggle (Desktop / Tablet) */}
             <button
               onClick={() => setShowThumbnails(!showThumbnails)}
-              className={`p-1.5 rounded-lg transition cursor-pointer ${
+              className={`hidden sm:inline-flex p-1.5 rounded-lg transition cursor-pointer ${
                 showThumbnails ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
               title="Page Thumbnails"
@@ -492,31 +492,31 @@ export default function PremiumPdfViewer({
               </button>
             </div>
 
-            {/* Protected Shield Indicator (Strictly replacing the old download button) */}
+            {/* Protected Shield Indicator */}
             <div
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold select-none cursor-default"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold select-none cursor-default"
               title="Content Protected by RivaanshPrep Security System. Direct downloading and saving are disabled."
             >
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
               <span className="text-[11px] font-mono">Protected</span>
             </div>
 
-            {/* Fullscreen Toggle */}
+            {/* Fullscreen Toggle (Desktop / Tablet) */}
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              className="hidden sm:inline-flex p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
 
-            {/* Close */}
+            {/* Close Button - Clean & Easy to Tap */}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
-              title="Close Preview (Esc)"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border border-slate-700/60 hover:border-rose-500/40 transition active:scale-95 cursor-pointer ml-1"
+              title="Close PDF Viewer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
