@@ -58,7 +58,8 @@ echo "📁 [2/6] Setting up project directories..."
 sudo mkdir -p "$APP_DIR"
 sudo mkdir -p "$WEB_ROOT"
 sudo chown -R $USER:$USER "$APP_DIR"
-sudo chown -R $USER:$USER "$WEB_ROOT"
+sudo chown -R www-data:www-data "$WEB_ROOT"
+sudo chmod -R 755 "$WEB_ROOT"
 
 # 3. Deploy React Frontend
 echo "⚛️  [3/6] Deploying React Frontend..."
@@ -72,6 +73,8 @@ else
     npm run build
     cp -r dist/* "$WEB_ROOT/"
 fi
+sudo chown -R www-data:www-data "$WEB_ROOT"
+sudo chmod -R 755 "$WEB_ROOT"
 echo "✅ Frontend deployed to $WEB_ROOT"
 
 # 4. Deploy Spring Boot Backend
@@ -133,8 +136,9 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name rivaanshprep.com www.rivaanshprep.com;
 
     ssl_certificate /etc/letsencrypt/live/rivaanshprep.com/fullchain.pem;

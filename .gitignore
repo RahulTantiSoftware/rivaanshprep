@@ -114,3 +114,7 @@ Saved_Final_Ch8_Master_Notes_9x13/
 generated_episodes/
 content_engine/
 prod/
+
+# Whitelist all files in release bundle (must be at the end to override all *.html, *.js, *.png rules)
+!release/
+!release/**
