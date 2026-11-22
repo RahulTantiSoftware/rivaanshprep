@@ -48,14 +48,18 @@ app:
     secret: 4e9c7f21a8b3d5e6f0123456789abcdef0123456789abcdef0123456789abcdef
     access-token-expiration-ms: 900000 # 15 minutes
     refresh-token-expiration-ms: 604800000 # 7 days
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:3000
+      - http://127.0.0.1:5173
+      - http://rivaanshprep.com
+      - https://rivaanshprep.com
+      - http://www.rivaanshprep.com
+      - https://www.rivaanshprep.com
 
 # Cloudflare R2 Object Storage
 cloudflare:
   r2:
     base-url: ${R2_BASE_URL:}
     cookie-name: rp_refresh_token
-  cors:
-    allowed-origins:
-      - http://localhost:5173
-      - http://localhost:3000
-      - http://127.0.0.1:5173

@@ -43,7 +43,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 3. Build React Frontend
 echo "⚛️  [3/6] Building Production React Frontend..."
 cd "$SCRIPT_DIR/web-app/frontend"
-npm ci
+npm ci || npm install
 npm run build
 cp -r dist/* "$WEB_ROOT/"
 echo "✅ Frontend built and copied to $WEB_ROOT"
@@ -73,7 +73,10 @@ Restart=always
 RestartSec=10
 Environment="PORT=8080"
 Environment="SPRING_PROFILES_ACTIVE=prod"
-Environment="R2_BASE_URL=https://9c6e8d481ebdbbb383ab06fa35991a66.r2.cloudflarestorage.com/rivaanshprep/Chapters"
+Environment="CLOUDFLARE_R2_ENDPOINT=https://9c6e8d481ebdbbb383ab06fa35991a66.r2.cloudflarestorage.com"
+Environment="CLOUDFLARE_R2_ACCESS_KEY_ID=4fe33a10f8439eb2e3386e91ecd1c4f5"
+Environment="CLOUDFLARE_R2_SECRET_ACCESS_KEY=aad1c8e96c9f4381d46731315ea8c550a05182c3422584f5e0e3d723159a0945"
+Environment="CLOUDFLARE_R2_BUCKET=rivaanshprep"
 
 [Install]
 WantedBy=multi-user.target
