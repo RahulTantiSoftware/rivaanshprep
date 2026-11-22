@@ -21,6 +21,9 @@ public class NcertContentController {
 
     private static final Logger log = LoggerFactory.getLogger(NcertContentController.class);
 
+    @org.springframework.beans.factory.annotation.Value("${cloudflare.r2.base-url:}")
+    private String r2BaseUrl;
+
     private List<String> getChapterDirs() {
         String baseDir = System.getenv("NCERT_BASE_DIR");
         List<String> subjectFolders = List.of(
@@ -132,8 +135,29 @@ public class NcertContentController {
                 }
             }
 
+            if (targetFile == null && r2BaseUrl != null && !r2BaseUrl.isBlank()) {
+                String cleanBase = r2BaseUrl.endsWith("/") ? r2BaseUrl : r2BaseUrl + "/";
+                java.net.URI uri = java.net.URI.create(cleanBase + fileName);
+                log.info("Fetching protected stream from Cloudflare R2: {}", uri);
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder(uri).GET().build();
+                java.net.http.HttpResponse<java.io.InputStream> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofInputStream());
+                if (res.statusCode() == 200) {
+                    org.springframework.core.io.InputStreamResource r2Resource = new org.springframework.core.io.InputStreamResource(res.body());
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_PDF)
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
+                            .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
+                            .header(HttpHeaders.PRAGMA, "no-cache")
+                            .header(HttpHeaders.EXPIRES, "0")
+                            .header("X-Content-Type-Options", "nosniff")
+                            .header("X-Frame-Options", "DENY")
+                            .body(r2Resource);
+                }
+            }
+
             if (targetFile == null) {
-                log.warn("Requested PDF file not found across all subject libraries: {}", fileName);
+                log.warn("Requested PDF file not found across local libraries or R2: {}", fileName);
                 return ResponseEntity.notFound().build();
             }
 
