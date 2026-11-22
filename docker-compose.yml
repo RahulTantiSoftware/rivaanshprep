@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./web-app/backend
+      dockerfile: Dockerfile
+    container_name: rivaanshprep-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - NCERT_BASE_DIR=/app/ncert_data
+      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - backend-data:/app/data
+      - ./ncert_class10_math:/app/ncert_data/ncert_class10_math:ro
+      - ./ncert_class10_science:/app/ncert_data/ncert_class10_science:ro
+      - ./ncert_class10_social_science:/app/ncert_data/ncert_class10_social_science:ro
+      - ./ncert_class10_english:/app/ncert_data/ncert_class10_english:ro
+      - ./ncert_class10_hindi:/app/ncert_data/ncert_class10_hindi:ro
+      - ./ncert_class10_hindi_medium:/app/ncert_data/ncert_class10_hindi_medium:ro
+    networks:
+      - rivaansh-network
+
+  frontend:
+    build:
+      context: ./web-app/frontend
+      dockerfile: Dockerfile
+    container_name: rivaanshprep-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - rivaansh-network
+
+networks:
+  rivaansh-network:
+    driver: bridge
+
+volumes:
+  backend-data:
