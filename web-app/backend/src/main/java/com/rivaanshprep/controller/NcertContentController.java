@@ -1,8 +1,11 @@
 package com.rivaanshprep.controller;
 
+import com.rivaanshprep.service.CloudflareR2Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -20,6 +24,9 @@ import java.util.*;
 public class NcertContentController {
 
     private static final Logger log = LoggerFactory.getLogger(NcertContentController.class);
+
+    @Autowired(required = false)
+    private CloudflareR2Service r2Service;
 
     @org.springframework.beans.factory.annotation.Value("${cloudflare.r2.base-url:}")
     private String r2BaseUrl;
@@ -57,6 +64,39 @@ public class NcertContentController {
             }
         }
         return resolvedDirs;
+    }
+
+    @GetMapping("/r2/verify")
+    public ResponseEntity<Map<String, Object>> verifyR2Connection() {
+        Map<String, Object> res = new LinkedHashMap<>();
+        boolean configured = r2Service != null && r2Service.isConfigured();
+        res.put("r2Configured", configured);
+        res.put("bucket", "rivaanshprep");
+
+        if (configured) {
+            String testFile = "Chapter_01_Real_Numbers.pdf";
+            try (InputStream is = r2Service.fetchPdfStream(testFile)) {
+                if (is != null) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = is.read(buffer);
+                    res.put("status", "SUCCESS_LINKED");
+                    res.put("testSampleFile", testFile);
+                    res.put("sampleBytesRead", bytesRead);
+                    res.put("verifiedSource", "Cloudflare R2 Object Storage (APAC)");
+                    return ResponseEntity.ok(res);
+                } else {
+                    res.put("status", "FAILED_FILE_NOT_FOUND");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
+                }
+            } catch (Exception e) {
+                res.put("status", "ERROR");
+                res.put("error", e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+            }
+        } else {
+            res.put("status", "NOT_CONFIGURED");
+            return ResponseEntity.badRequest().body(res);
+        }
     }
 
     @GetMapping("/toc")
@@ -125,6 +165,7 @@ public class NcertContentController {
                 return ResponseEntity.badRequest().build();
             }
 
+            // 1. First check local disk libraries
             File targetFile = null;
             for (String dirPath : getChapterDirs()) {
                 Path path = Paths.get(dirPath, fileName).normalize();
@@ -135,67 +176,41 @@ public class NcertContentController {
                 }
             }
 
-            if (targetFile == null && r2BaseUrl != null && !r2BaseUrl.isBlank()) {
-                String cleanBase = r2BaseUrl.endsWith("/") ? r2BaseUrl : r2BaseUrl + "/";
-                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            // 2. If available locally, stream with DRM protection
+            if (targetFile != null) {
+                Resource resource = new FileSystemResource(targetFile);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
+                        .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
+                        .header(HttpHeaders.PRAGMA, "no-cache")
+                        .header(HttpHeaders.EXPIRES, "0")
+                        .header("X-Content-Type-Options", "nosniff")
+                        .header("X-Frame-Options", "DENY")
+                        .header("X-Source-Origin", "local-disk")
+                        .body(resource);
+            }
 
-                List<String> subPrefixes = List.of(
-                        "",
-                        "Chapters/",
-                        "ncert_class10_math/",
-                        "ncert_class10_math/Chapters/",
-                        "ncert_class10_science/",
-                        "ncert_class10_science/Chapters/",
-                        "ncert_class10_social_science/",
-                        "ncert_class10_social_science/Chapters/",
-                        "ncert_class10_english/",
-                        "ncert_class10_english/Chapters/",
-                        "ncert_class10_hindi/",
-                        "ncert_class10_hindi/Chapters/",
-                        "ncert_class10_hindi_medium/",
-                        "ncert_class10_hindi_medium/Chapters/"
-                );
-
-                for (String pfx : subPrefixes) {
-                    try {
-                        java.net.URI uri = java.net.URI.create(cleanBase + pfx + fileName);
-                        java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder(uri).GET().build();
-                        java.net.http.HttpResponse<java.io.InputStream> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofInputStream());
-                        if (res.statusCode() == 200) {
-                            log.info("Serving protected stream from Cloudflare R2: {}", uri);
-                            org.springframework.core.io.InputStreamResource r2Resource = new org.springframework.core.io.InputStreamResource(res.body());
-                            return ResponseEntity.ok()
-                                    .contentType(MediaType.APPLICATION_PDF)
-                                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
-                                    .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
-                                    .header(HttpHeaders.PRAGMA, "no-cache")
-                                    .header(HttpHeaders.EXPIRES, "0")
-                                    .header("X-Content-Type-Options", "nosniff")
-                                    .header("X-Frame-Options", "DENY")
-                                    .body(r2Resource);
-                        }
-                    } catch (Exception ignored) {
-                    }
+            // 3. Fallback to Cloudflare R2 S3 authenticated client
+            if (r2Service != null && r2Service.isConfigured()) {
+                InputStream r2Stream = r2Service.fetchPdfStream(fileName);
+                if (r2Stream != null) {
+                    InputStreamResource r2Resource = new InputStreamResource(r2Stream);
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_PDF)
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
+                            .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
+                            .header(HttpHeaders.PRAGMA, "no-cache")
+                            .header(HttpHeaders.EXPIRES, "0")
+                            .header("X-Content-Type-Options", "nosniff")
+                            .header("X-Frame-Options", "DENY")
+                            .header("X-Source-Origin", "cloudflare-r2-verified")
+                            .body(r2Resource);
                 }
             }
 
-            if (targetFile == null) {
-                log.warn("Requested PDF file not found across local libraries or R2: {}", fileName);
-                return ResponseEntity.notFound().build();
-            }
-
-            Resource resource = new FileSystemResource(targetFile);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    // Obscure filename and prevent automatic browser download prompt
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
-                    // Strictly disable client/proxy disk caching so file cannot be extracted from browser cache
-                    .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
-                    .header(HttpHeaders.PRAGMA, "no-cache")
-                    .header(HttpHeaders.EXPIRES, "0")
-                    .header("X-Content-Type-Options", "nosniff")
-                    .header("X-Frame-Options", "DENY")
-                    .body(resource);
+            log.warn("Requested PDF file not found across local libraries or Cloudflare R2: {}", fileName);
+            return ResponseEntity.notFound().build();
 
         } catch (Exception e) {
             log.error("Error serving PDF file: {}", fileName, e);
