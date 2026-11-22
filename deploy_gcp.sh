@@ -8,39 +8,49 @@ set -e
 # ==============================================================================
 
 echo "=========================================================="
-echo "🚀 Starting RivaanshPrep Deployment for rivaanshprep.com"
+echo "🚀 Starting RivaanshPrep Fast Deployment for rivaanshprep.com"
 echo "=========================================================="
 
 DOMAIN="rivaanshprep.com"
 APP_DIR="/opt/rivaanshprep"
 WEB_ROOT="/var/www/rivaanshprep"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 0. Free disk space on the server to prevent "E: You don't have enough free space"
-echo "🧹 [0/6] Freeing up disk space on server..."
+# 0. Free disk space on the server
+echo "🧹 [0/6] Cleaning disk space..."
 sudo apt-get clean
 sudo journalctl --vacuum-size=50M 2>/dev/null || true
+sudo rm -rf /var/log/*.gz /var/log/*.[0-9] 2>/dev/null || true
+sudo truncate -s 0 /var/log/*.log /var/log/syslog /var/log/messages 2>/dev/null || true
 if command -v docker &> /dev/null; then
-    echo "Cleaning unused Docker cache..."
     sudo docker system prune -af 2>/dev/null || true
 fi
-sudo apt-get autoremove -y || true
+sudo apt-get autoremove -y 2>/dev/null || true
 
 echo "📊 Disk status:"
 df -h /
 
-# 1. Update and install required packages
-echo "📦 [1/6] Installing dependencies (OpenJDK 21, Nginx, Certbot)..."
-sudo apt-get update -y
-sudo apt-get install -y curl git ufw nginx certbot python3-certbot-nginx openjdk-21-jdk
+# 1. Fix apt repo mirror issues (Google Cloud SDK mirror sync bug workaround)
+echo "📦 [1/6] Preparing package repositories..."
+sudo find /etc/apt/sources.list.d/ -type f -name "*cloud-sdk*" -exec mv {} {}.bak \; 2>/dev/null || true
+sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get update -y || true
 
-# Install Node.js 20 LTS if not present
-if ! command -v node &> /dev/null; then
-    echo "📦 Installing Node.js 20 LTS..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+# Determine if pre-compiled release artifacts exist
+if [ -f "$SCRIPT_DIR/release/backend.jar" ] && [ -d "$SCRIPT_DIR/release/dist" ]; then
+    echo "⚡ Pre-compiled production release artifacts detected!"
+    echo "📦 Installing lightweight runtime dependencies (JRE 21 Headless, Nginx, Certbot)..."
+    sudo apt-get install -y curl git ufw nginx certbot python3-certbot-nginx openjdk-21-jre-headless
+else
+    echo "📦 Installing full build tools (JDK 21, Node.js, Nginx, Certbot)..."
+    sudo apt-get install -y curl git ufw nginx certbot python3-certbot-nginx openjdk-21-jdk
+    if ! command -v node &> /dev/null; then
+        echo "📦 Installing Node.js 20 LTS..."
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    fi
 fi
 
-echo "Node version: $(node -v)"
 echo "Java version: $(java -version 2>&1 | head -n 1)"
 
 # 2. Setup project directories
@@ -50,25 +60,34 @@ sudo mkdir -p "$WEB_ROOT"
 sudo chown -R $USER:$USER "$APP_DIR"
 sudo chown -R $USER:$USER "$WEB_ROOT"
 
-# Determine script location
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 3. Deploy React Frontend
+echo "⚛️  [3/6] Deploying React Frontend..."
+if [ -d "$SCRIPT_DIR/release/dist" ]; then
+    echo "⚡ Copying pre-built production frontend..."
+    cp -r "$SCRIPT_DIR/release/dist/"* "$WEB_ROOT/"
+else
+    echo "🔨 Building frontend from source..."
+    cd "$SCRIPT_DIR/web-app/frontend"
+    npm ci || npm install
+    npm run build
+    cp -r dist/* "$WEB_ROOT/"
+fi
+echo "✅ Frontend deployed to $WEB_ROOT"
 
-# 3. Build React Frontend
-echo "⚛️  [3/6] Building Production React Frontend..."
-cd "$SCRIPT_DIR/web-app/frontend"
-npm ci || npm install
-npm run build
-cp -r dist/* "$WEB_ROOT/"
-echo "✅ Frontend built and copied to $WEB_ROOT"
-
-# 4. Build Spring Boot Backend
-echo "☕ [4/6] Building Spring Boot Backend Jar..."
-cd "$SCRIPT_DIR/web-app/backend"
-chmod +x mvnw
-./mvnw clean package -DskipTests -B
-cp target/*.jar "$APP_DIR/backend.jar"
+# 4. Deploy Spring Boot Backend
+echo "☕ [4/6] Deploying Spring Boot Backend..."
+if [ -f "$SCRIPT_DIR/release/backend.jar" ]; then
+    echo "⚡ Copying pre-packaged Spring Boot backend jar..."
+    cp "$SCRIPT_DIR/release/backend.jar" "$APP_DIR/backend.jar"
+else
+    echo "🔨 Compiling backend jar from source..."
+    cd "$SCRIPT_DIR/web-app/backend"
+    chmod +x mvnw
+    ./mvnw clean package -DskipTests -B
+    cp target/*.jar "$APP_DIR/backend.jar"
+fi
 mkdir -p "$APP_DIR/data"
-echo "✅ Backend packaged at $APP_DIR/backend.jar"
+echo "✅ Backend ready at $APP_DIR/backend.jar"
 
 # 5. Create Systemd Service for Spring Boot
 echo "⚙️  [5/6] Configuring Systemd Service (rivaanshprep-backend)..."

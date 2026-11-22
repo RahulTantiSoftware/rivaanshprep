@@ -12,6 +12,10 @@ target/
 **/target/
 *.class
 
+# Allow pre-compiled production release artifacts
+!release/
+!release/**
+
 # IDE & Editor Files
 .idea/
 .vscode/
