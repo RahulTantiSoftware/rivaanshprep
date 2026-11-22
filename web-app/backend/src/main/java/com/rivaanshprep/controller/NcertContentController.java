@@ -137,22 +137,45 @@ public class NcertContentController {
 
             if (targetFile == null && r2BaseUrl != null && !r2BaseUrl.isBlank()) {
                 String cleanBase = r2BaseUrl.endsWith("/") ? r2BaseUrl : r2BaseUrl + "/";
-                java.net.URI uri = java.net.URI.create(cleanBase + fileName);
-                log.info("Fetching protected stream from Cloudflare R2: {}", uri);
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-                java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder(uri).GET().build();
-                java.net.http.HttpResponse<java.io.InputStream> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofInputStream());
-                if (res.statusCode() == 200) {
-                    org.springframework.core.io.InputStreamResource r2Resource = new org.springframework.core.io.InputStreamResource(res.body());
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_PDF)
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
-                            .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
-                            .header(HttpHeaders.PRAGMA, "no-cache")
-                            .header(HttpHeaders.EXPIRES, "0")
-                            .header("X-Content-Type-Options", "nosniff")
-                            .header("X-Frame-Options", "DENY")
-                            .body(r2Resource);
+
+                List<String> subPrefixes = List.of(
+                        "",
+                        "Chapters/",
+                        "ncert_class10_math/",
+                        "ncert_class10_math/Chapters/",
+                        "ncert_class10_science/",
+                        "ncert_class10_science/Chapters/",
+                        "ncert_class10_social_science/",
+                        "ncert_class10_social_science/Chapters/",
+                        "ncert_class10_english/",
+                        "ncert_class10_english/Chapters/",
+                        "ncert_class10_hindi/",
+                        "ncert_class10_hindi/Chapters/",
+                        "ncert_class10_hindi_medium/",
+                        "ncert_class10_hindi_medium/Chapters/"
+                );
+
+                for (String pfx : subPrefixes) {
+                    try {
+                        java.net.URI uri = java.net.URI.create(cleanBase + pfx + fileName);
+                        java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder(uri).GET().build();
+                        java.net.http.HttpResponse<java.io.InputStream> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofInputStream());
+                        if (res.statusCode() == 200) {
+                            log.info("Serving protected stream from Cloudflare R2: {}", uri);
+                            org.springframework.core.io.InputStreamResource r2Resource = new org.springframework.core.io.InputStreamResource(res.body());
+                            return ResponseEntity.ok()
+                                    .contentType(MediaType.APPLICATION_PDF)
+                                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"protected-stream.dat\"")
+                                    .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
+                                    .header(HttpHeaders.PRAGMA, "no-cache")
+                                    .header(HttpHeaders.EXPIRES, "0")
+                                    .header("X-Content-Type-Options", "nosniff")
+                                    .header("X-Frame-Options", "DENY")
+                                    .body(r2Resource);
+                        }
+                    } catch (Exception ignored) {
+                    }
                 }
             }
 

@@ -40,21 +40,29 @@ Write-Host "`n✅ Connection verified! Syncing NCERT Class 10 libraries to Cloud
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $rootDir = Split-Path -Parent $scriptDir
 
-$folders = @(
-    "ncert_class10_math\Chapters",
-    "ncert_class10_science\Chapters",
-    "ncert_class10_social_science\Chapters",
-    "ncert_class10_english\Chapters",
-    "ncert_class10_hindi\Chapters",
-    "ncert_class10_hindi_medium\Chapters"
+$subjects = @(
+    "ncert_class10_math",
+    "ncert_class10_science",
+    "ncert_class10_social_science",
+    "ncert_class10_english",
+    "ncert_class10_hindi",
+    "ncert_class10_hindi_medium"
 )
 
-foreach ($rel in $folders) {
-    $localPath = Join-Path $rootDir $rel
+foreach ($sub in $subjects) {
+    $localPath = Join-Path $rootDir $sub
     if (Test-Path $localPath) {
-        Write-Host "📤 Syncing $rel to s3://$BucketName/Chapters/..." -ForegroundColor Yellow
-        aws s3 sync "$localPath" "s3://$BucketName/Chapters/" --endpoint-url $endpoint --no-progress
+        # 1. Sync to dedicated per-subject folder (e.g. s3://rivaanshprep/ncert_class10_math/)
+        Write-Host "📁 Syncing $sub to s3://$BucketName/$sub/..." -ForegroundColor Cyan
+        aws s3 sync "$localPath" "s3://$BucketName/$sub/" --exclude "*" --include "*.pdf" --endpoint-url $endpoint --no-progress
+
+        # 2. Also ensure flat Chapters/ folder is synced for direct index lookup
+        $chaptersPath = Join-Path $localPath "Chapters"
+        if (Test-Path $chaptersPath) {
+            Write-Host "📤 Syncing $sub/Chapters to s3://$BucketName/Chapters/..." -ForegroundColor Yellow
+            aws s3 sync "$chaptersPath" "s3://$BucketName/Chapters/" --endpoint-url $endpoint --no-progress
+        }
     }
 }
 
-Write-Host "`n🎉 Success! All NCERT Class 10 digital book libraries have been synchronized to Cloudflare R2 bucket '$BucketName'!`n" -ForegroundColor Green
+Write-Host "`n🎉 Success! All NCERT Class 10 digital book libraries have been synchronized into dedicated subject folders in Cloudflare R2 bucket '$BucketName'!`n" -ForegroundColor Green
