@@ -1,0 +1,112 @@
+# Dependencies & Package Managers
+node_modules/
+**/node_modules/
+package-lock.json
+
+# Builds & Compiled Outputs
+dist/
+**/dist/
+build/
+**/build/
+target/
+**/target/
+*.class
+
+# IDE & Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Database & Local Runtime State
+**/data/*.db
+**/data/*.mv.db
+**/data/*.trace.db
+*.log
+logs/
+.system_generated/
+.gemini/
+.agents/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+
+# Temporary files & Archive bundles
+*.zip
+*.tar
+*.gz
+*.rar
+test_*.pdf
+
+# Loose Root Scratch & Legacy Engine Files
+*.py
+*.html
+*.js
+!web-app/**/*.js
+!web-app/**/*.jsx
+*.json
+!web-app/**/*.json
+!package.json
+Episode_*.json
+test_*.json
+jesc1_files.json
+available_subjects_metadata.json
+GLOBAL_VIDEO_PRODUCTION_RULES.md
+INSTAGRAM_IMPORTANT_SETTINGS_GUIDE.md
+MASTER_EPISODE_SCRIPT_BLUEPRINT_RULE.md
+MASTER_SCRIPT_ENGINE_10000_VIDEOS.md
+OMNI_REAL_HUMAN_PROMPT_ENGINE.md
+REAL_HUMAN_CINEMATIC_PROMPT_ENGINE_SYSTEM_PROMPT.md
+UP_DOCUMENTARY_SYSTEM_PROMPT.md
+Episode_8_1_Trigonometry_Script.md
+Chapter_09_Introduction_Notes_2Pages.md
+agent.md
+RivaanshPrep_PanIndia_MultiLang_Mobile_HLD.md
+
+# Heavy Video, Audio & Standalone ML Generation Folders
+*.mp4
+*.mp3
+*.wav
+*.m4a
+*.mov
+*.avi
+*.jpg
+*.png
+!web-app/**/*.png
+!web-app/**/*.jpg
+!web-app/**/*.svg
+!logos/**/*.png
+!logos/**/*.jpg
+!logos/**/*.svg
+cookie.txt
+*.bat
+!web-app/backend/mvnw.cmd
+*.txt
+CLASS XI/
+class10th/
+indicf5-studio/
+Wav2Lip-HD/
+prod-live-app/
+media/
+insta_reels/
+geography_audios/
+geography_transcripts/
+note-studio/
+Instagram_Downloads/
+Chhath_Songs/
+ai_video_editor_desktop/
+prompt_cinematographer_engine/
+Student teacher Script/
+Narrator Script Generation/
+Chapter6_Triangles/
+Pythagoras_Special/
+Ch8_Android_Notes_*/
+Saved_Final_Ch8_Master_Notes_9x13/
+generated_episodes/
+content_engine/
+prod/

@@ -1,0 +1,48 @@
+package com.rivaanshprep.dto;
+
+public class AuthResponse {
+
+    private String accessToken;
+    private String tokenType = "Bearer";
+    private long expiresInMs;
+    private UserProfileResponse user;
+
+    public AuthResponse(String accessToken, long expiresInMs, UserProfileResponse user) {
+        this.accessToken = accessToken;
+        this.expiresInMs = expiresInMs;
+        this.user = user;
+    }
+
+    // Getters and Setters
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getTokenType() {
+        return tokenType;
+    }
+
+    public void setTokenType(String tokenType) {
+        this.tokenType = tokenType;
+    }
+
+    public long getExpiresInMs() {
+        return expiresInMs;
+    }
+
+    public void setExpiresInMs(long expiresInMs) {
+        this.expiresInMs = expiresInMs;
+    }
+
+    public UserProfileResponse getUser() {
+        return user;
+    }
+
+    public void setUser(UserProfileResponse user) {
+        this.user = user;
+    }
+}
