@@ -108,6 +108,7 @@ Restart=always
 RestartSec=10
 Environment="PORT=8080"
 Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="ADMIN_PASSWORD=F2180?b67#"
 Environment="CLOUDFLARE_R2_ENDPOINT=https://9c6e8d481ebdbbb383ab06fa35991a66.r2.cloudflarestorage.com"
 Environment="CLOUDFLARE_R2_ACCESS_KEY_ID=4fe33a10f8439eb2e3386e91ecd1c4f5"
 Environment="CLOUDFLARE_R2_SECRET_ACCESS_KEY=aad1c8e96c9f4381d46731315ea8c550a05182c3422584f5e0e3d723159a0945"

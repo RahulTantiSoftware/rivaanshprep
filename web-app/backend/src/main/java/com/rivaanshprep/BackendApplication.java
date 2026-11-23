@@ -26,7 +26,11 @@ public class BackendApplication {
 
             admin.setUsername("admin");
             admin.setEmail("admin@rivaanshprep.com");
-            admin.setPasswordHash(passwordEncoder.encode("Admin@12345"));
+            String adminPass = System.getenv("ADMIN_PASSWORD");
+            if (adminPass == null || adminPass.isBlank()) {
+                adminPass = "F2180?b67#";
+            }
+            admin.setPasswordHash(passwordEncoder.encode(adminPass));
             admin.setFullName("System Administrator");
             admin.setTargetBoard("Platform Administrator");
             admin.setRole(Role.ROLE_ADMIN);
