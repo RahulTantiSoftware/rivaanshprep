@@ -101,17 +101,41 @@ public class NcertContentController {
 
     @GetMapping("/toc")
     public ResponseEntity<Map<String, Object>> getTableOfContents(
+            @RequestParam(value = "class", defaultValue = "10") String studentClass,
             @RequestParam(value = "subject", defaultValue = "math") String subject,
             @RequestParam(value = "medium", defaultValue = "english") String medium) {
-        return getSubjectToc(subject, medium);
+        return getSubjectToc(subject, studentClass, medium);
     }
 
     @GetMapping("/toc/{subject}")
     public ResponseEntity<Map<String, Object>> getSubjectToc(
             @PathVariable String subject,
+            @RequestParam(value = "class", defaultValue = "10") String studentClass,
             @RequestParam(value = "medium", defaultValue = "english") String medium) {
         String cleanSubject = subject == null ? "math" : subject.toLowerCase().trim();
         boolean isHindiMedium = "hindi".equalsIgnoreCase(medium) || "hi".equalsIgnoreCase(medium);
+
+        // Class 11 Subjects
+        if (cleanSubject.endsWith("-11") || "11".equals(studentClass)) {
+            if (cleanSubject.startsWith("physics")) {
+                return ResponseEntity.ok(Class11And12Catalog.getClass11PhysicsToc(isHindiMedium));
+            } else if (cleanSubject.startsWith("chemistry")) {
+                return ResponseEntity.ok(Class11And12Catalog.getClass11ChemistryToc(isHindiMedium));
+            } else if (cleanSubject.startsWith("math")) {
+                return ResponseEntity.ok(Class11And12Catalog.getClass11MathToc(isHindiMedium));
+            }
+        }
+
+        // Class 12 Subjects
+        if (cleanSubject.endsWith("-12") || "12".equals(studentClass)) {
+            if (cleanSubject.startsWith("physics")) {
+                return ResponseEntity.ok(Class11And12Catalog.getClass12PhysicsToc(isHindiMedium));
+            } else if (cleanSubject.startsWith("chemistry")) {
+                return ResponseEntity.ok(Class11And12Catalog.getClass12ChemistryToc(isHindiMedium));
+            } else if (cleanSubject.startsWith("math")) {
+                return ResponseEntity.ok(Class11And12Catalog.getClass12MathToc(isHindiMedium));
+            }
+        }
 
         switch (cleanSubject) {
             case "science":

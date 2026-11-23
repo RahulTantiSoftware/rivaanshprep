@@ -30,7 +30,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
         <div className="w-10 h-10 border-3 border-sky-500/20 border-t-sky-500 rounded-full animate-spin mb-4" />
-        <p className="text-sm text-slate-400 font-medium">Loading Class 10 NCERT Platform...</p>
+        <p className="text-sm text-slate-400 font-medium">Loading NCERT Platform...</p>
       </div>
     );
   }

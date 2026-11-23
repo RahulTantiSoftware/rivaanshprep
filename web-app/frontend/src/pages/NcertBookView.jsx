@@ -12,6 +12,8 @@ import {
   Globe,
   BookOpen,
   Feather,
+  Atom,
+  Dna,
   ArrowLeft,
   ArrowRight,
   Sparkles,
@@ -26,76 +28,161 @@ import {
   GraduationCap
 } from 'lucide-react';
 
-const SUBJECTS = [
-  {
-    id: 'math',
-    title: 'Mathematics',
-    subtitle: 'Standard & Basic (Code 041)',
-    chaptersCount: 17,
-    description: 'Real Numbers, Polynomials, Trigonometry, Triangles, plus Proofs, Modelling & Complete Solutions.',
-    badge: '14 Chapters + Solutions',
-    tags: ['Real Numbers', 'Trigonometry', 'Quadratics', 'Full Solutions'],
-    accentBorder: 'hover:border-sky-500/70',
-    iconBg: 'bg-sky-500/15 text-sky-400 border border-sky-500/30',
-    badgeStyle: 'bg-sky-500/15 text-sky-300 border border-sky-500/30',
-    icon: Calculator,
-  },
-  {
-    id: 'science',
-    title: 'Science',
-    subtitle: 'Physics, Chemistry & Biology (Code 086)',
-    chaptersCount: 16,
-    description: 'Chemical Reactions, Acids & Bases, Life Processes, Electricity, Magnetic Effects & Environment.',
-    badge: '16 Chapters • 4 Units',
-    tags: ['Chemical Reactions', 'Life Processes', 'Electricity', 'Optics'],
-    accentBorder: 'hover:border-emerald-500/70',
-    iconBg: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
-    badgeStyle: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
-    icon: FlaskConical,
-  },
-  {
-    id: 'social-science',
-    title: 'Social Science',
-    subtitle: 'History, Geography, Civics & Economics (Code 087)',
-    chaptersCount: 25,
-    description: 'India & Contemporary World, Contemporary India, Democratic Politics & Economic Development.',
-    badge: '25 Chapters • 4 Units',
-    tags: ['History', 'Geography', 'Civics', 'Economics'],
-    accentBorder: 'hover:border-amber-500/70',
-    iconBg: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
-    badgeStyle: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
-    icon: Globe,
-  },
-  {
-    id: 'english',
-    title: 'English',
-    subtitle: 'First Flight & Footprints without Feet (Code 184)',
-    chaptersCount: 21,
-    description: 'First Flight prose & poetry, Footprints without Feet supplementary, & board analysis sets.',
-    badge: '21 Chapters • 2 Books',
-    tags: ['First Flight', 'Footprints', 'Poetry Analysis', 'Grammar'],
-    accentBorder: 'hover:border-violet-500/70',
-    iconBg: 'bg-violet-500/15 text-violet-400 border border-violet-500/30',
-    badgeStyle: 'bg-violet-500/15 text-violet-300 border border-violet-500/30',
-    icon: BookOpen,
-  },
-  {
-    id: 'hindi',
-    title: 'Hindi',
-    subtitle: 'Kshitij & Kritika (Course A / B - Code 002)',
-    chaptersCount: 22,
-    description: 'Kshitij kavya & gadya khand, Kritika supplementary stories, vyakaran & exam summaries.',
-    badge: '22 Chapters • 2 Books',
-    tags: ['क्षितिज भाग 2', 'कृतिका भाग 2', 'काव्य & गद्य', 'व्याकरण'],
-    accentBorder: 'hover:border-rose-500/70',
-    iconBg: 'bg-rose-500/15 text-rose-400 border border-rose-500/30',
-    badgeStyle: 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
-    icon: Feather,
-  },
-];
+const CLASS_SUBJECTS = {
+  '10': [
+    {
+      id: 'math',
+      title: 'Mathematics',
+      subtitle: 'Standard & Basic (Code 041)',
+      chaptersCount: 17,
+      description: 'Real Numbers, Polynomials, Trigonometry, Triangles, plus Proofs, Modelling & Complete Solutions.',
+      badge: '14 Chapters + Solutions',
+      tags: ['Real Numbers', 'Trigonometry', 'Quadratics', 'Full Solutions'],
+      accentBorder: 'hover:border-sky-500/70',
+      iconBg: 'bg-sky-500/15 text-sky-400 border border-sky-500/30',
+      badgeStyle: 'bg-sky-500/15 text-sky-300 border border-sky-500/30',
+      icon: Calculator,
+    },
+    {
+      id: 'science',
+      title: 'Science',
+      subtitle: 'Physics, Chemistry & Biology (Code 086)',
+      chaptersCount: 16,
+      description: 'Chemical Reactions, Acids & Bases, Life Processes, Electricity, Magnetic Effects & Environment.',
+      badge: '16 Chapters • 4 Units',
+      tags: ['Chemical Reactions', 'Life Processes', 'Electricity', 'Optics'],
+      accentBorder: 'hover:border-emerald-500/70',
+      iconBg: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+      badgeStyle: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+      icon: FlaskConical,
+    },
+    {
+      id: 'social-science',
+      title: 'Social Science',
+      subtitle: 'History, Geography, Civics & Economics (Code 087)',
+      chaptersCount: 25,
+      description: 'India & Contemporary World, Contemporary India, Democratic Politics & Economic Development.',
+      badge: '25 Chapters • 4 Units',
+      tags: ['History', 'Geography', 'Civics', 'Economics'],
+      accentBorder: 'hover:border-amber-500/70',
+      iconBg: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
+      badgeStyle: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      icon: Globe,
+    },
+    {
+      id: 'english',
+      title: 'English',
+      subtitle: 'First Flight & Footprints without Feet (Code 184)',
+      chaptersCount: 21,
+      description: 'First Flight prose & poetry, Footprints without Feet supplementary, & board analysis sets.',
+      badge: '21 Chapters • 2 Books',
+      tags: ['First Flight', 'Footprints', 'Poetry Analysis', 'Grammar'],
+      accentBorder: 'hover:border-violet-500/70',
+      iconBg: 'bg-violet-500/15 text-violet-400 border border-violet-500/30',
+      badgeStyle: 'bg-violet-500/15 text-violet-300 border border-violet-500/30',
+      icon: BookOpen,
+    },
+    {
+      id: 'hindi',
+      title: 'Hindi',
+      subtitle: 'Kshitij & Kritika (Course A / B - Code 002)',
+      chaptersCount: 22,
+      description: 'Kshitij kavya & gadya khand, Kritika supplementary stories, vyakaran & exam summaries.',
+      badge: '22 Chapters • 2 Books',
+      tags: ['क्षितिज भाग 2', 'कृतिका भाग 2', 'काव्य & गद्य', 'व्याकरण'],
+      accentBorder: 'hover:border-rose-500/70',
+      iconBg: 'bg-rose-500/15 text-rose-400 border border-rose-500/30',
+      badgeStyle: 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
+      icon: Feather,
+    },
+  ],
+  '11': [
+    {
+      id: 'physics-11',
+      title: 'Physics',
+      subtitle: 'Part 1 & Part 2 (Code 042)',
+      chaptersCount: 14,
+      description: 'Units & Measurements, Motion, Laws of Motion, Work Energy, Gravitation, Thermodynamics & Waves.',
+      badge: '14 Chapters • 2 Books',
+      tags: ['Mechanics', 'Gravitation', 'Thermodynamics', 'Waves & SHM'],
+      accentBorder: 'hover:border-sky-500/70',
+      iconBg: 'bg-sky-500/15 text-sky-400 border border-sky-500/30',
+      badgeStyle: 'bg-sky-500/15 text-sky-300 border border-sky-500/30',
+      icon: Atom,
+    },
+    {
+      id: 'chemistry-11',
+      title: 'Chemistry',
+      subtitle: 'Part 1 & Part 2 (Code 043)',
+      chaptersCount: 9,
+      description: 'Atomic Structure, Periodic Table, Chemical Bonding, Thermodynamics, Equilibrium & Organic Hydrocarbons.',
+      badge: '9 Chapters • Physical & Organic',
+      tags: ['Atomic Structure', 'Bonding', 'Thermodynamics', 'Hydrocarbons'],
+      accentBorder: 'hover:border-emerald-500/70',
+      iconBg: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+      badgeStyle: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+      icon: FlaskConical,
+    },
+    {
+      id: 'math-11',
+      title: 'Mathematics',
+      subtitle: 'Standard Class 11 (Code 041)',
+      chaptersCount: 14,
+      description: 'Sets, Relations, Trigonometric Functions, Complex Numbers, Permutations, Conic Sections & Calculus.',
+      badge: '14 Chapters • Calculus & Algebra',
+      tags: ['Sets & Relations', 'Trigonometry', 'Conics', 'Limits & Derivatives'],
+      accentBorder: 'hover:border-indigo-500/70',
+      iconBg: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
+      badgeStyle: 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30',
+      icon: Calculator,
+    },
+  ],
+  '12': [
+    {
+      id: 'physics-12',
+      title: 'Physics',
+      subtitle: 'Part 1 & Part 2 (Code 042)',
+      chaptersCount: 14,
+      description: 'Electric Charges & Fields, Current Electricity, Magnetism, Optics, Atoms, Nuclei & Semiconductors.',
+      badge: '14 Chapters • 2 Books',
+      tags: ['Electrostatics', 'Magnetism', 'Ray & Wave Optics', 'Semiconductors'],
+      accentBorder: 'hover:border-sky-500/70',
+      iconBg: 'bg-sky-500/15 text-sky-400 border border-sky-500/30',
+      badgeStyle: 'bg-sky-500/15 text-sky-300 border border-sky-500/30',
+      icon: Atom,
+    },
+    {
+      id: 'chemistry-12',
+      title: 'Chemistry',
+      subtitle: 'Part 1 & Part 2 (Code 043)',
+      chaptersCount: 10,
+      description: 'Solutions, Electrochemistry, Chemical Kinetics, Coordination Compounds, Haloalkanes & Biomolecules.',
+      badge: '10 Chapters • Physical & Organic',
+      tags: ['Solutions', 'Electrochemistry', 'Coordination Compounds', 'Biomolecules'],
+      accentBorder: 'hover:border-emerald-500/70',
+      iconBg: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+      badgeStyle: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+      icon: FlaskConical,
+    },
+    {
+      id: 'math-12',
+      title: 'Mathematics',
+      subtitle: 'Part 1 & Part 2 (Code 041)',
+      chaptersCount: 13,
+      description: 'Relations & Functions, Matrices, Determinants, Continuity, Integrals, Differential Equations & Vectors.',
+      badge: '13 Chapters • Calculus & Vectors',
+      tags: ['Matrices & Determinants', 'Calculus', 'Vectors & 3D', 'Probability'],
+      accentBorder: 'hover:border-indigo-500/70',
+      iconBg: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
+      badgeStyle: 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30',
+      icon: Calculator,
+    },
+  ],
+};
 
 export default function NcertBookView() {
   const { user } = useAuth();
+  const [selectedClass, setSelectedClass] = useState('10');
   const [selectedSubject, setSelectedSubject] = useState(null); // null = show subject cards first
   const [chapters, setChapters] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -113,7 +200,7 @@ export default function NcertBookView() {
     setLoadingChapters(true);
     setSelectedCategory('all');
     try {
-      const response = await axiosClient.get(`/content/toc?subject=${subId}&medium=english`);
+      const response = await axiosClient.get(`/content/toc?class=${selectedClass}&subject=${subId}&medium=english`);
       setChapters(response.data.chapters || []);
       setCategories(response.data.categories || []);
       setExpandedChapters({ 1: true });
@@ -150,7 +237,8 @@ export default function NcertBookView() {
     setComingSoonChapter(ch);
   };
 
-  const currentSubjectObj = SUBJECTS.find((s) => s.id === selectedSubject);
+  const currentSubjects = CLASS_SUBJECTS[selectedClass] || CLASS_SUBJECTS['10'];
+  const currentSubjectObj = currentSubjects.find((s) => s.id === selectedSubject);
 
   // Filter chapters based on active category tab
   const displayedChapters = selectedCategory === 'all'
@@ -171,12 +259,41 @@ export default function NcertBookView() {
     return (
       <div className="min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100 pb-28 md:pb-16 pt-4 sm:pt-6 px-3 sm:px-6 max-w-5xl mx-auto w-full">
         
+        {/* Class Selection Tabs (10th, 11th, 12th) */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800/80 mb-5 w-fit shadow-md">
+          {[
+            { id: '10', label: 'Class 10th', count: '5 Subjects' },
+            { id: '11', label: 'Class 11th', count: '3 Subjects' },
+            { id: '12', label: 'Class 12th', count: '3 Subjects' },
+          ].map((cls) => (
+            <button
+              key={cls.id}
+              onClick={() => {
+                setSelectedClass(cls.id);
+                setSelectedSubject(null);
+              }}
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                selectedClass === cls.id
+                  ? 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white shadow-md shadow-sky-600/30 ring-1 ring-sky-400/40'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <span>{cls.label}</span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full hidden sm:inline ${
+                selectedClass === cls.id ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+              }`}>
+                {cls.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {/* Hero Value Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900/95 to-sky-950/40 border border-slate-800/90 p-4 sm:p-6 mb-6 shadow-xl">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" /> CBSE Class 10th (2025–26)
+                <Sparkles className="w-3.5 h-3.5" /> CBSE Class {selectedClass}th (2025–26)
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
                 ⭐ 100% Free Complete NCERT
@@ -184,7 +301,7 @@ export default function NcertBookView() {
             </div>
 
             <h1 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-              Master Class 10th with{' '}
+              Master Class {selectedClass}th with{' '}
               <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
                 Official NCERT Textbooks
               </span>
@@ -212,7 +329,7 @@ export default function NcertBookView() {
               </div>
               <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-950/60 border border-slate-800/60">
                 <GraduationCap className="w-4 h-4 text-indigo-400 shrink-0" />
-                <div className="text-[11px] leading-tight text-slate-300 font-medium">All 5 Core Subjects</div>
+                <div className="text-[11px] leading-tight text-slate-300 font-medium">Core NCERT Subjects</div>
               </div>
             </div>
           </div>
@@ -229,13 +346,13 @@ export default function NcertBookView() {
             </p>
           </div>
           <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 shrink-0">
-            5 Subjects
+            {currentSubjects.length} Subjects
           </span>
         </div>
 
         {/* Subjects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {SUBJECTS.map((sub) => {
+          {currentSubjects.map((sub) => {
             const Icon = sub.icon;
             return (
               <div

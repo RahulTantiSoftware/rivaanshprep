@@ -48,7 +48,7 @@ export default function LoginPage({ setCurrentView }) {
             Sign In with <span className="text-sky-400">Username</span>
           </h2>
           <p className="mt-1 text-xs text-slate-400">
-            Access Class 10 NCERT Textbooks, Notes & Question Banks
+            Access Class 10, 11 & 12 NCERT Textbooks, Notes & Question Banks
           </p>
         </div>
 

@@ -31,7 +31,7 @@ export default function Navbar({ currentView, setCurrentView }) {
               Rivaansh<span className="text-sky-400">Prep</span>
             </div>
             <div className="flex items-center text-[10px] sm:text-xs text-sky-400 font-medium space-x-1 sm:space-x-1.5 mt-0.5 whitespace-nowrap">
-              <span>Class 10th NCERT</span>
+              <span>Class 10 • 11 • 12 NCERT</span>
               <span className="text-slate-600 hidden sm:inline">•</span>
               <span className="text-emerald-400 hidden sm:inline-flex items-center gap-0.5">
                 <ShieldCheck className="w-3 h-3 inline shrink-0" /> Secure
@@ -43,7 +43,7 @@ export default function Navbar({ currentView, setCurrentView }) {
         {/* Navigation / Actions */}
         <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
           
-          {/* Desktop Only: 10th Subjects button (Mobile uses fixed bottom navigation bar) */}
+          {/* Desktop Only: NCERT Books button (Mobile uses fixed bottom navigation bar) */}
           <button
             onClick={() => setCurrentView('ncert-toc')}
             className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition active:scale-95 cursor-pointer ${
@@ -53,7 +53,7 @@ export default function Navbar({ currentView, setCurrentView }) {
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>10th Subjects</span>
+            <span>NCERT Books</span>
           </button>
 
           {user ? (
