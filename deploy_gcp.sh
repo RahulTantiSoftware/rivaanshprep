@@ -125,6 +125,13 @@ echo "✅ Systemd service rivaanshprep-backend is active and running!"
 # 6. Configure Nginx for rivaanshprep.com
 echo "🌐 [6/6] Configuring Nginx Reverse Proxy for $DOMAIN..."
 
+# Ensure /etc/nginx/mime.types maps .mjs to JavaScript
+if [ -f /etc/nginx/mime.types ] && ! grep -q "mjs" /etc/nginx/mime.types; then
+    echo "🔧 Adding .mjs extension to /etc/nginx/mime.types..."
+    sudo sed -i 's/application\/javascript[[:space:]]*js;/application\/javascript js mjs;/' /etc/nginx/mime.types 2>/dev/null || true
+    sudo sed -i 's/text\/javascript[[:space:]]*js;/text\/javascript js mjs;/' /etc/nginx/mime.types 2>/dev/null || true
+fi
+
 if [ -f /etc/letsencrypt/live/rivaanshprep.com/fullchain.pem ]; then
     echo "🔒 SSL certificate found! Configuring HTTPS & HTTP redirect..."
     sudo tee /etc/nginx/sites-available/rivaanshprep > /dev/null << 'EOF'
@@ -149,11 +156,17 @@ server {
     root /var/www/rivaanshprep;
     index index.html;
 
+    include /etc/nginx/mime.types;
+    types {
+        text/javascript mjs;
+        application/javascript js;
+    }
+
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_proxied any;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+    gzip_types text/plain text/css application/json application/javascript text/javascript text/xml application/xml image/svg+xml;
 
     location / {
         try_files $uri $uri/ /index.html;
@@ -170,6 +183,14 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 90;
+    }
+
+    # Fix .mjs MIME type for PDF.js web worker & modern ES modules
+    location ~* \.mjs$ {
+        default_type text/javascript;
+        add_header Content-Type "text/javascript; charset=utf-8";
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
     }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ {
@@ -194,11 +215,17 @@ server {
     root /var/www/rivaanshprep;
     index index.html;
 
+    include /etc/nginx/mime.types;
+    types {
+        text/javascript mjs;
+        application/javascript js;
+    }
+
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_proxied any;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+    gzip_types text/plain text/css application/json application/javascript text/javascript text/xml application/xml image/svg+xml;
 
     location / {
         try_files $uri $uri/ /index.html;
@@ -215,6 +242,14 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 90;
+    }
+
+    # Fix .mjs MIME type for PDF.js web worker & modern ES modules
+    location ~* \.mjs$ {
+        default_type text/javascript;
+        add_header Content-Type "text/javascript; charset=utf-8";
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
     }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ {
