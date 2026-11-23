@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Lock, User, Eye, EyeOff, ShieldCheck, AlertCircle, ArrowRight, KeyRound } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function LoginPage({ setCurrentView }) {
   const { login } = useAuth();
@@ -30,18 +30,6 @@ export default function LoginPage({ setCurrentView }) {
     }
   };
 
-  const handleFillDemo = () => {
-    setUsername('student10');
-    setPassword('Password123!');
-    setError('');
-  };
-
-  const handleFillAdmin = () => {
-    setUsername('admin');
-    setPassword('Admin@12345');
-    setError('');
-  };
-
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-slate-950 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
@@ -60,38 +48,12 @@ export default function LoginPage({ setCurrentView }) {
             Sign In with <span className="text-sky-400">Username</span>
           </h2>
           <p className="mt-1 text-xs text-slate-400">
-            Access Class 10 Math notes, formula sheets & PDFs
+            Access Class 10 NCERT Textbooks, Notes & Question Banks
           </p>
         </div>
 
         <div className="bg-slate-900/90 backdrop-blur-xl py-6 px-5 sm:px-8 shadow-2xl rounded-2xl border border-slate-800">
           
-          {/* Quick Demo Credentials Pill */}
-          <div className="mb-5 p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <div>
-              <span className="text-[10px] font-mono font-bold text-sky-400 uppercase block">Instant Login Presets</span>
-              <span className="text-slate-300 text-[11px]">
-                Student: <strong className="text-sky-300">student10</strong> • Admin: <strong className="text-amber-300">admin</strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="px-2.5 py-1 rounded-lg bg-sky-600/80 hover:bg-sky-500 text-white font-semibold text-[11px] transition active:scale-95 cursor-pointer"
-              >
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={handleFillAdmin}
-                className="px-2.5 py-1 rounded-lg bg-amber-600/80 hover:bg-amber-500 text-white font-semibold text-[11px] transition active:scale-95 cursor-pointer"
-              >
-                Admin
-              </button>
-            </div>
-          </div>
-
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start space-x-2 text-rose-300 text-xs">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-400" />
@@ -113,7 +75,7 @@ export default function LoginPage({ setCurrentView }) {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. student10 or rohan@example.com"
+                  placeholder="Enter your username or email"
                   className="w-full pl-9 pr-3.5 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs sm:text-sm transition"
                 />
               </div>
