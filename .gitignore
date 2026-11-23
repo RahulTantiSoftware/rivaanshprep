@@ -2,6 +2,8 @@
 node_modules/
 **/node_modules/
 package-lock.json
+__pycache__/
+*.pyc
 
 # Builds & Compiled Outputs
 dist/

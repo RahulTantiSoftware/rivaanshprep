@@ -350,21 +350,22 @@ export default function PremiumPdfViewer({
         }`}
       >
         {/* ===================== TOP PREMIUM TOOLBAR ===================== */}
-        <div className="px-3 sm:px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-white gap-2 shrink-0">
+        <div className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-white gap-2 shrink-0">
           
           {/* Left: Title & File Badge */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
               src="/logo.png"
               alt="RivaanshPrep"
-              className="w-8 h-8 rounded-full object-cover shrink-0 shadow-md shadow-sky-500/30 ring-1 ring-sky-400/40"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 shadow-md shadow-sky-500/30 ring-1 ring-sky-400/40"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Desktop Badges (hidden on mobile to prevent wrapping) */}
+              <div className="hidden sm:flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400">
                   NCERT Official Textbook
                 </span>
-                <span className="hidden sm:inline-flex px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 uppercase">
+                <span className="inline-flex px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 uppercase">
                   Protected View
                 </span>
                 {hasDualMedium && (
@@ -380,7 +381,19 @@ export default function PremiumPdfViewer({
                   <Lock className="w-2.5 h-2.5 text-amber-400" /> Read-Only
                 </span>
               </div>
-              <h3 className="font-bold text-xs sm:text-sm text-white truncate leading-tight">
+
+              {/* Mobile Single-Line Badge + Title (Zero wrapping) */}
+              <div className="flex sm:hidden items-center gap-1.5 min-w-0">
+                <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-400 shrink-0">
+                  NCERT
+                </span>
+                <h3 className="font-bold text-xs text-white truncate whitespace-nowrap min-w-0">
+                  {activeDisplayTitle}
+                </h3>
+              </div>
+
+              {/* Desktop Title */}
+              <h3 className="hidden sm:block font-bold text-sm text-white truncate leading-tight">
                 {activeDisplayTitle}
               </h3>
             </div>
@@ -388,10 +401,10 @@ export default function PremiumPdfViewer({
 
           {/* Center: Language Switcher (English / Hindi in PDF View) */}
           {hasDualMedium && (
-            <div className="flex items-center p-0.5 bg-slate-900 border border-slate-700/80 rounded-xl shrink-0 shadow-inner">
+            <div className="flex items-center p-0.5 bg-slate-900 border border-slate-700/80 rounded-lg sm:rounded-xl shrink-0 shadow-inner">
               <button
                 onClick={() => setViewerMedium('english')}
-                className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-1.5 sm:px-2.5 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   viewerMedium === 'english'
                     ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                     : 'text-slate-400 hover:text-white'
@@ -399,18 +412,20 @@ export default function PremiumPdfViewer({
                 title="Switch to English Medium Textbook"
               >
                 <Languages className="w-3 h-3 hidden sm:inline" />
-                <span>English</span>
+                <span className="sm:inline hidden">English</span>
+                <span className="sm:hidden font-mono">EN</span>
               </button>
               <button
                 onClick={() => setViewerMedium('hindi')}
-                className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-1.5 sm:px-2.5 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   viewerMedium === 'hindi'
                     ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
                 title="हिंदी माध्यम पुस्तक पर स्विच करें"
               >
-                <span>हिंदी</span>
+                <span className="sm:inline hidden">हिंदी</span>
+                <span className="sm:hidden font-mono">HI</span>
               </button>
             </div>
           )}

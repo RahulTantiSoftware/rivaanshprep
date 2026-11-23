@@ -265,15 +265,18 @@ server {
 EOF
 fi
 
-# Clean conflicting sites
+# Clean conflicting sites and ensure only rivaanshprep is active
 sudo rm -f /etc/nginx/sites-enabled/default
-if [ -f /etc/nginx/sites-enabled/kahani ]; then
-    sudo mv /etc/nginx/sites-enabled/kahani /etc/nginx/sites-available/kahani.bak 2>/dev/null || sudo rm -f /etc/nginx/sites-enabled/kahani
-fi
-sudo ln -sf /etc/nginx/sites-available/rivaanshprep /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/kahani*
+sudo ln -sf /etc/nginx/sites-available/rivaanshprep /etc/nginx/sites-enabled/rivaanshprep
+
+# Ensure directory permissions for Nginx www-data user
+sudo chmod 755 /var/www
+sudo chown -R www-data:www-data "$WEB_ROOT"
+sudo chmod -R 755 "$WEB_ROOT"
 
 sudo nginx -t
-sudo systemctl reload nginx
+sudo systemctl restart nginx
 
 echo ""
 echo "=========================================================="
