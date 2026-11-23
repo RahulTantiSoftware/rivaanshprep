@@ -51,6 +51,12 @@ public class CloudflareR2Service {
             "ncert_class10_hindi/",
             "ncert_class10_hindi_medium/Chapters/",
             "ncert_class10_hindi_medium/",
+            "ncert_class11_physics/",
+            "ncert_class11_chemistry/",
+            "ncert_class11_math/",
+            "ncert_class12_physics/",
+            "ncert_class12_chemistry/",
+            "ncert_class12_math/",
             ""
     );
 
